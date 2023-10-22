@@ -4,10 +4,15 @@ const bombCount = 16;
 const gridSize = 10;
 
 let bombLocations = [];
+let score = 0;
+let gameInProgress = false;
 
 generateGridButton.addEventListener("click", () => {
   generateGrid();
   placeBombs();
+  gameInProgress = true;
+  score = 0;
+  updateScore();
 });
 
 function generateGrid() {
@@ -21,16 +26,16 @@ function generateGrid() {
       cell.dataset.col = col;
       cell.textContent = (row * gridSize + col + 1).toString();
       cell.addEventListener("click", (event) => {
+        if (!gameInProgress) return;
         const clickedCell = event.target;
         const isBomb = isCellABomb(clickedCell);
 
         if (isBomb) {
-          clickedCell.style.backgroundColor = "red";
-          console.log("Hai cliccato sulla cella con una bomba!");
-          gameOver();
+          endGame();
         } else {
           clickedCell.style.backgroundColor = "cyan";
-          console.log("Hai cliccato sulla cella " + clickedCell.textContent);
+          score++;
+          updateScore();
           checkWin();
         }
       });
@@ -49,7 +54,7 @@ function placeBombs() {
       bombLocations.push(bombLocation);
     }
   }
-  console.log("Posizione delle bombe: ", bombLocations);
+  // console.log("Posizione delle bombe: ", bombLocations);
 }
 
 function isCellABomb(cell) {
@@ -57,19 +62,26 @@ function isCellABomb(cell) {
   return bombLocations.includes(cellIndex);
 }
 
-function gameOver() {
+function endGame() {
+  gameInProgress = false;
+  const cells = document.querySelectorAll(".cell");
+  cells.forEach((cell) => {
+    if (isCellABomb(cell)) {
+      cell.style.backgroundColor = "red";
+    }
+  });
   alert("Hai perso!");
 }
 
 function checkWin() {
-  const cells = document.querySelectorAll(".cell");
-  let nonBombCount = 0;
-  cells.forEach((cell) => {
-    if (cell.style.backgroundColor !== "cyan") {
-      nonBombCount++;
-    }
-  });
-  if (nonBombCount === gridSize * gridSize - bombCount) {
+  if (score === gridSize * gridSize - bombCount) {
+    gameInProgress = false;
     alert("Hai vinto!");
   }
 }
+
+function updateScore() {
+  const scoreElement = document.getElementById("score");
+  scoreElement.textContent = `Punteggio: ${score}`;
+}
+
